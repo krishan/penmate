@@ -1,31 +1,39 @@
 #!/usr/bin/env ruby
 $:.unshift(File.dirname(__FILE__) + '/../lib') unless $:.include?(File.dirname(__FILE__) + '/../lib')
 
+require "rubygems"
+require "daemons"
+require "penmate/server"
+
+if ARGV.empty?
+  puts <<-EOS
+PENMATE - easy remote editing
+
+* execute the following command to install penmate
+penmate install >> ~/.profile
+
+* start the penmate server with
+penmate start
+
+* start an ssh session
+
+* press cmd+V and follow the instructions
+
+EOS
+  exit
+
+end
+
 if ARGV[0] == "install"
   puts <<-EOS
 
-# alias ssh for penmate 
-alias ssh='PENMATE_PORT=`curl -s localhost:11473/port` && if [ "$PENMATE_PORT" != "" ]; then PENMATE_TUNNEL="-R $PENMATE_PORT:localhost:11473"; curl -s localhost:11473/command | pbcopy; fi; ssh $PENMATE_TUNNEL'
+# alias ssh for penmate
+alias ssh='PENMATE_PORT=`curl -s localhost:11473/port` && if [ "$PENMATE_PORT" != "" ]; then PENMATE_TUNNEL="-R $PENMATE_PORT:localhost:11473"; curl -s localhost:11473/command | pbcopy; echo "Press cmd+V to use penmate."; fi; ssh $PENMATE_TUNNEL'
 
 EOS
   exit
 end
 
-
-puts <<-EOS
-PENMATE - easy remote editing
-
-* execute this in your local shell to install penmate in your .profile
-penmate install >> ~/.profile
-
-* start an ssh session and before you start working simply paste what's in your clipboard
-(Warning: you will lose your clipboard's prior content)
-
-* now you can use this command in the ssh session to edit remote files with your local editor:
-mate <file-to-be-edited>
-
-EOS
-
-require "penmate/server"
-
-PenmateServer.run! :bind => 'localhost', :port => 11473, :environment => "production"
+Daemons.run_proc("penmate") do
+  PenmateServer.run! :bind => 'localhost', :port => 11473, :environment => "production"
+end
