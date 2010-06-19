@@ -1,19 +1,22 @@
 require 'rubygems'
 require 'sinatra/base'
-require 'penmate/compress.rb'
 
 $remote_port = (10000 + rand * 50000).to_i.to_s
 $editor_command = "mate -w"
 
-def client_code
-  client_source = File.read(File.join(File.dirname(__FILE__), "client.rb"))
-  raise "single quotes in client.rb" if client_source.include?("'")
-  compress(client_source).gsub("remote_port", $remote_port)
-end
+client_source = File.read(File.join(File.expand_path(File.dirname(__FILE__)), "client.rb"))
+client_source.gsub!("remote_port", $remote_port).gsub!("\n", ";")
+raise "single quotes in client.rb" if client_source.include?("'")
 
-def shell_command
-  "function mate { echo '#{client_code}'|ruby -w -rnet/http -rfileutils - $@;}"
-end
+$shell_command = <<-EOS
+function mate { echo '#{client_source}'|ruby -w -rnet/http -rfileutils - $@;}
+`which clear`
+echo 'penmate installed, usage: mate <file-to-edit>'
+echo
+EOS
+
+$shell_command.gsub!("\n", ";")
+$shell_command << "\n"
 
 class PenmateServer < Sinatra::Base
   get '/' do
@@ -25,7 +28,7 @@ class PenmateServer < Sinatra::Base
   end
 
   get '/command' do
-    shell_command
+    $shell_command
   end
 
   post '/' do
