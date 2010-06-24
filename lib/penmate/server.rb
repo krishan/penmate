@@ -9,13 +9,15 @@ client_source.gsub!("remote_port", $remote_port).gsub!("\n", ";")
 raise "single quotes in client.rb" if client_source.include?("'")
 
 $shell_command = <<-EOS
-function mate { echo '#{client_source}'|ruby -w -rnet/http -rfileutils - $@;}
+MATE_SRC='#{client_source}'
+function mate { echo $MATE_SRC|ruby -w - $@ & }
 `which clear`
 echo 'penmate installed, usage: mate <file-to-edit>'
 echo
 EOS
 
 $shell_command.gsub!("\n", ";")
+$shell_command.gsub!("& }", "&\n}")
 $shell_command << "\n"
 
 class PenmateServer < Sinatra::Base

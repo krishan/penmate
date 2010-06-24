@@ -1,3 +1,5 @@
+require "net/http"
+require "fileutils"
 file_name = ARGV[0] or exit
 FileUtils.touch file_name
 file_content = File.read file_name
