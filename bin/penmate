@@ -1,27 +1,14 @@
 #!/usr/bin/env ruby
-$:.unshift(File.dirname(__FILE__) + '/../lib') unless $:.include?(File.dirname(__FILE__) + '/../lib')
+base_dir = File.join(File.dirname(__FILE__), "..")
+$:.unshift(base_dir + '/lib') unless $:.include?(base_dir + '/lib')
 
 require "rubygems"
 require "daemons"
 require "penmate/server"
 
 if ARGV.empty?
-  puts <<-EOS
-PENMATE - easy remote editing
-
-* execute the following command to install penmate
-penmate install >> ~/.profile
-
-* start the penmate server with
-penmate start
-
-* start an ssh session
-
-* press cmd+V and follow the instructions
-
-EOS
+  puts File.read(base_dir+"/readme.txt")
   exit
-
 end
 
 if ARGV[0] == "install"
