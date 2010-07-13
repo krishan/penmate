@@ -4,7 +4,10 @@ file_name = ARGV[0] or exit
 FileUtils.touch file_name
 file_content = File.read file_name
 
-result = Net::HTTP.post_form(URI.parse("http://localhost:remote_port/"), {:n => file_name, :c => file_content})
+url = URI.parse("http://localhost:remote_port/")
+req = Net::HTTP::Post.new(url.path)
+req.set_form_data({:n => file_name, :c => file_content})
+result = Net::HTTP.new(url.host, url.port).start {|http| http.read_timeout = 86400; http.request(req) }
 result.is_a? Net::HTTPSuccess or result.error!
 edited_content = result.body
 
